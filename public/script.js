@@ -17,8 +17,12 @@ document.addEventListener("DOMContentLoaded", () => {
   let localStream;
   let typingTimeout;
 
+  // emotion vars
+  let currentEmotion = "neutral";
+  let lastBrightness = 0;
+
   // ======================
-  // START CAMERA (MIRRORED STREAM)
+  // START CAMERA (MIRROR + BEAUTY + EMOTION)
   // ======================
   async function start() {
     try {
@@ -27,40 +31,71 @@ document.addEventListener("DOMContentLoaded", () => {
         audio: true
       });
 
-      // hidden video
       const hiddenVideo = document.createElement("video");
       hiddenVideo.srcObject = rawStream;
       hiddenVideo.muted = true;
       hiddenVideo.play();
 
-      // canvas mirror
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
+
+      function applyGlow(emotion) {
+        let glow = "none";
+        if (emotion === "happy") {
+          glow = "0 0 25px rgba(34,197,94,0.8)";
+        } else if (emotion === "sad") {
+          glow = "0 0 25px rgba(59,130,246,0.8)";
+        }
+        localVideo.style.boxShadow = glow;
+      }
+
+      function draw() {
+        ctx.save();
+        ctx.filter = "blur(1.2px) brightness(1.08) contrast(1.05)";
+        ctx.scale(-1, 1);
+        ctx.drawImage(
+          hiddenVideo,
+          -canvas.width,
+          0,
+          canvas.width,
+          canvas.height
+        );
+        ctx.restore();
+
+        // emotion detect (simple brightness)
+        const frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        let total = 0;
+
+        for (let i = 0; i < frame.data.length; i += 40) {
+          total += frame.data[i] + frame.data[i + 1] + frame.data[i + 2];
+        }
+
+        const brightness = total / (frame.data.length / 40);
+
+        if (brightness > lastBrightness + 15) {
+          currentEmotion = "happy";
+        } else if (brightness < lastBrightness - 15) {
+          currentEmotion = "sad";
+        } else {
+          currentEmotion = "neutral";
+        }
+
+        lastBrightness = brightness;
+        applyGlow(currentEmotion);
+
+        requestAnimationFrame(draw);
+      }
 
       hiddenVideo.onloadedmetadata = () => {
         canvas.width = hiddenVideo.videoWidth;
         canvas.height = hiddenVideo.videoHeight;
-
-        function draw() {
-          ctx.save();
-          ctx.scale(-1, 1);
-          ctx.drawImage(
-            hiddenVideo,
-            -canvas.width,
-            0,
-            canvas.width,
-            canvas.height
-          );
-          ctx.restore();
-          requestAnimationFrame(draw);
-        }
-        draw();
+        draw(); // 🔥 VERY IMPORTANT
       };
 
       const videoTrack = canvas.captureStream(30).getVideoTracks()[0];
       const audioTrack = rawStream.getAudioTracks()[0];
-
       localStream = new MediaStream([videoTrack, audioTrack]);
+
       localVideo.srcObject = localStream;
 
       pc = new RTCPeerConnection({
@@ -156,7 +191,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ======================
-  // MIC TOGGLE
+  // MIC / CAMERA
   // ======================
   micBtn.onclick = () => {
     const track = localStream.getAudioTracks()[0];
@@ -164,26 +199,21 @@ document.addEventListener("DOMContentLoaded", () => {
     micBtn.innerText = track.enabled ? "🎤 Mute" : "🔇 Unmute";
   };
 
-  // ======================
-  // CAMERA TOGGLE
-  // ======================
   camBtn.onclick = () => {
     const track = localStream.getVideoTracks()[0];
     track.enabled = !track.enabled;
-    camBtn.innerText = track.enabled
-      ? "📷 Camera Off"
-      : "📸 Camera On";
+    camBtn.innerText =
+      track.enabled ? "📷 Camera Off" : "📸 Camera On";
   };
 
   // ======================
-  // NEXT / LEAVE
+  // NEXT
   // ======================
   nextBtn.onclick = () => {
-  if (statusText)
-    statusText.innerText = "Status: Finding new stranger...";
-  socket.emit("leave");
-};
-
+    if (statusText)
+      statusText.innerText = "Status: Finding new stranger...";
+    socket.emit("leave");
+  };
 
   socket.on("leave", () => {
     if (statusText)
