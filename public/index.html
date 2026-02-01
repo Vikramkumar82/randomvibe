@@ -1,139 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>RandomVibe Video Chat</title>
-
-    <style>
-        body {
-            margin: 0;
-            background: #0f172a;
-            color: #ffffff;
-            font-family: Arial, sans-serif;
-            text-align: center;
-        }
-
-        header {
-            background: #020617;
-            padding: 15px;
-            font-size: 22px;
-            font-weight: bold;
-            color: #38bdf8;
-        }
-
-        #status {
-            margin: 10px;
-            font-size: 14px;
-            color: #a5f3fc;
-        }
-
-        .video-container {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 10px;
-            flex-wrap: wrap;
-        }
-
-        video {
-            width: 320px;
-            height: 240px;
-            background: black;
-            border-radius: 10px;
-            border: 2px solid #38bdf8;
-        }
-
-        .controls {
-            margin: 15px;
-        }
-
-        button {
-            padding: 10px 18px;
-            font-size: 15px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            background: #38bdf8;
-            color: #020617;
-            margin: 5px;
-        }
-
-        button:hover {
-            background: #0ea5e9;
-        }
-
-        /* Chat box */
-        .chat-box {
-            width: 90%;
-            max-width: 500px;
-            margin: 15px auto;
-            background: #020617;
-            border-radius: 8px;
-            padding: 10px;
-        }
-
-        #chat {
-            height: 150px;
-            overflow-y: auto;
-            text-align: left;
-            padding: 5px;
-            border-bottom: 1px solid #334155;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-
-        #chat p {
-            margin: 5px 0;
-        }
-
-        .chat-input {
-            display: flex;
-            gap: 5px;
-        }
-
-        .chat-input input {
-            flex: 1;
-            padding: 8px;
-            border-radius: 5px;
-            border: none;
-            outline: none;
-        }
-
-        footer {
-            font-size: 12px;
-            color: #94a3b8;
-            margin: 10px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>RandomVibe Video Chat</title>
+  <style>
+    body {
+      background:#020617;
+      color:#e5e7eb;
+      font-family: Arial, sans-serif;
+      text-align:center;
+    }
+    video {
+      width:300px;
+      height:220px;
+      border:2px solid #38bdf8;
+      border-radius:8px;
+      margin:10px;
+      background:black;
+    }
+    .controls button {
+      margin:5px;
+      padding:8px 14px;
+      cursor:pointer;
+    }
+    #chat {
+      height:120px;
+      overflow:auto;
+      background:#020617;
+      margin:10px;
+      padding:5px;
+    }
+  </style>
 </head>
 
 <body>
 
-<header>🎥 RandomVibe</header>
-
+<h2>🎥 RandomVibe</h2>
 <p id="status">Status: Waiting for stranger...</p>
+<p id="typing"></p>
 
-<div class="video-container">
-    <video id="local" autoplay muted></video>
-    <video id="remote" autoplay></video>
+<div>
+  <video id="local" autoplay muted></video>
+  <video id="remote" autoplay></video>
 </div>
 
 <div class="controls">
-    <button id="nextBtn">Next</button>
+  <button id="micBtn">🎤 Mute</button>
+  <button id="camBtn">📷 Camera Off</button>
+  <button id="nextBtn">Next</button>
 </div>
 
-<div class="chat-box">
-    <div id="chat"></div>
+<div id="chat"></div>
 
-    <div class="chat-input">
-        <input id="msg" placeholder="Type message..." />
-        <button id="sendBtn">Send</button>
-    </div>
-</div>
+<input id="msg" placeholder="Type message..." />
+<button id="sendBtn">Send</button>
 
-<footer>
-    🔒 Safe & Anonymous | RandomVibe
-</footer>
+<p style="font-size:12px;color:#94a3b8">🔒 Safe & Anonymous | RandomVibe</p>
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="script.js"></script>
