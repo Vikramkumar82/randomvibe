@@ -1,121 +1,109 @@
 const socket = io();
 
-// ===== Elements =====
 const localVideo = document.getElementById("local");
 const remoteVideo = document.getElementById("remote");
-const nextBtn = document.getElementById("nextBtn");
 const msgInput = document.getElementById("msg");
 const sendBtn = document.getElementById("sendBtn");
 const chat = document.getElementById("chat");
-const statusText = document.getElementById("status");
+const typingText = document.getElementById("typing");
+const micBtn = document.getElementById("micBtn");
+const camBtn = document.getElementById("camBtn");
 
-// ===== WebRTC =====
 let pc;
 let localStream;
 
-// ===== Start Camera =====
+// START CAMERA
 async function start() {
-    statusText.innerText = "Status: Requesting camera access...";
+  localStream = await navigator.mediaDevices.getUserMedia({
+    video: true,
+    audio: true
+  });
 
-    localStream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true
-    });
+  localVideo.srcObject = localStream;
 
-    localVideo.srcObject = localStream;
+  pc = new RTCPeerConnection({
+    iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+  });
 
-    pc = new RTCPeerConnection({
-    iceServers: [
-        { urls: "stun:stun.l.google.com:19302" },
-        { urls: "stun:global.stun.twilio.com:3478" }
-    ]
-});
+  localStream.getTracks().forEach(track => {
+    pc.addTrack(track, localStream);
+  });
 
+  pc.ontrack = e => {
+    remoteVideo.srcObject = e.streams[0];
+  };
 
-    localStream.getTracks().forEach(track => {
-        pc.addTrack(track, localStream);
-    });
-
-    pc.ontrack = event => {
-        remoteVideo.srcObject = event.streams[0];
-    };
-
-    pc.onicecandidate = event => {
-        if (event.candidate) {
-            socket.emit("signal", { candidate: event.candidate });
-        }
-    };
-
-    statusText.innerText = "Status: Waiting for stranger...";
+  pc.onicecandidate = e => {
+    if (e.candidate) {
+      socket.emit("signal", { candidate: e.candidate });
+    }
+  };
 }
 
 start();
 
-// ===== Matching =====
+// MATCH
 socket.on("match", async ({ initiator }) => {
-    statusText.innerText = "Status: Stranger connected ✅";
-
-    if (initiator) {
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
-        socket.emit("signal", { offer });
-    }
+  if (initiator) {
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    socket.emit("signal", { offer });
+  }
 });
 
-// ===== Signaling =====
+// SIGNAL
 socket.on("signal", async data => {
-    if (data.offer) {
-        await pc.setRemoteDescription(data.offer);
-        const answer = await pc.createAnswer();
-        await pc.setLocalDescription(answer);
-        socket.emit("signal", { answer });
-    }
+  if (data.offer) {
+    await pc.setRemoteDescription(data.offer);
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    socket.emit("signal", { answer });
+  }
 
-    if (data.answer) {
-        await pc.setRemoteDescription(data.answer);
-    }
+  if (data.answer) {
+    await pc.setRemoteDescription(data.answer);
+  }
 
-    if (data.candidate) {
-        await pc.addIceCandidate(data.candidate);
-    }
+  if (data.candidate) {
+    await pc.addIceCandidate(data.candidate);
+  }
 });
 
-// ===== Stranger Left =====
-socket.on("leave", () => {
-    statusText.innerText = "Status: Stranger disconnected ❌";
-    remoteVideo.srcObject = null;
-    chat.innerHTML += `<p><i>Stranger left the chat</i></p>`;
-});
-
-// ===== Next Button =====
-nextBtn.onclick = () => {
-    statusText.innerText = "Status: Finding new stranger...";
-
-    if (pc) {
-        pc.close();
-        pc = null;
-    }
-
-    remoteVideo.srcObject = null;
-    chat.innerHTML = "";
-
-    socket.disconnect();
-
-    setTimeout(() => {
-        window.location.href = "/";
-    }, 500);
-};
-
-// ===== Chat =====
+// CHAT
 sendBtn.onclick = () => {
-    const text = msgInput.value.trim();
-    if (!text) return;
-
-    socket.emit("message", text);
-    chat.innerHTML += `<p><b>You:</b> ${text}</p>`;
-    msgInput.value = "";
+  if (!msgInput.value) return;
+  socket.emit("message", msgInput.value);
+  chat.innerHTML += `<p><b>You:</b> ${msgInput.value}</p>`;
+  msgInput.value = "";
 };
 
-socket.on("message", text => {
-    chat.innerHTML += `<p><b>Stranger:</b> ${text}</p>`;
+socket.on("message", msg => {
+  chat.innerHTML += `<p><b>Stranger:</b> ${msg}</p>`;
+});
+
+// TYPING
+msgInput.oninput = () => socket.emit("typing");
+
+socket.on("typing", () => {
+  typingText.innerText = "Stranger is typing...";
+  setTimeout(() => (typingText.innerText = ""), 800);
+});
+
+// MIC TOGGLE
+micBtn.onclick = () => {
+  const track = localStream.getAudioTracks()[0];
+  track.enabled = !track.enabled;
+  micBtn.innerText = track.enabled ? "🎤 Mute" : "🔇 Unmute";
+};
+
+// CAMERA TOGGLE
+camBtn.onclick = () => {
+  const track = localStream.getVideoTracks()[0];
+  track.enabled = !track.enabled;
+  camBtn.innerText = track.enabled ? "📷 Camera Off" : "📸 Camera On";
+};
+
+// LEAVE
+socket.on("leave", () => {
+  remoteVideo.srcObject = null;
 });
