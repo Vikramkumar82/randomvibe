@@ -27,6 +27,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // START CAMERA
   // ======================
   async function start() {
+    localVideo.style.transform = "scaleX(-1)";
+
     try {
       localStream = await navigator.mediaDevices.getUserMedia({
         video: true,
