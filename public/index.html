@@ -1,185 +1,224 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>RandomVibe</title>
+<meta charset="UTF-8">
+<title>RandomVibe – Video Chat</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 :root{
-  --bg:#0b1020;
-  --card:#11172a;
-  --accent:#38bdf8;
-  --muted:#94a3b8;
-  --danger:#ef4444;
+  --bg:#020617;
+  --card:#020617;
+  --neon:#38bdf8;
+  --soft:#0f172a;
 }
-*{box-sizing:border-box}
+
+*{
+  box-sizing:border-box;
+}
+
 body{
   margin:0;
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
-  background:radial-gradient(1200px 600px at 50% -200px,#18224a,#0b1020);
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background: radial-gradient(circle at top, #020617, #020617);
   color:#e5e7eb;
 }
-.app{
-  max-width:980px;
-  margin:0 auto;
-  padding:12px;
-}
-.header{
+
+/* ===== HEADER ===== */
+header{
+  padding:14px 18px;
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:12px;
-  margin-bottom:10px;
-}
-.brand{
-  display:flex;align-items:center;gap:10px;font-weight:700;
-}
-.logo{
-  width:36px;height:36px;border-radius:10px;
-  background:linear-gradient(135deg,#38bdf8,#22d3ee);
-  display:grid;place-items:center;color:#0b1020;
-}
-.badges{display:flex;gap:8px;flex-wrap:wrap}
-.badge{
-  padding:6px 10px;border-radius:999px;
-  background:rgba(56,189,248,.12);
-  color:#7dd3fc;font-size:12px
+  background:linear-gradient(90deg,#020617,#020617);
+  border-bottom:1px solid #1e293b;
 }
 
-.stage{
+.logo{
+  font-size:20px;
+  font-weight:600;
+  color:var(--neon);
+}
+
+.status{
+  font-size:13px;
+  padding:6px 12px;
+  border-radius:20px;
+  background:#020617;
+  border:1px solid #1e293b;
+}
+
+/* ===== MAIN ===== */
+.container{
+  max-width:1100px;
+  margin:auto;
+  padding:18px;
+}
+
+/* ===== VIDEOS ===== */
+.video-wrap{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:12px;
+  gap:18px;
+  margin-top:14px;
 }
-.card{
-  background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));
-  border:1px solid rgba(148,163,184,.12);
-  border-radius:16px;
-  padding:10px;
-}
-.video-wrap{
+
+.video-card{
   position:relative;
-  border-radius:12px;
-  overflow:hidden;
-  background:#000;
+  background:#020617;
+  border-radius:18px;
+  padding:10px;
+  border:1px solid #1e293b;
+  box-shadow:0 0 20px rgba(56,189,248,.08);
 }
+
+.video-card span{
+  position:absolute;
+  top:10px;
+  left:10px;
+  font-size:12px;
+  padding:4px 10px;
+  background:rgba(0,0,0,.5);
+  border-radius:20px;
+}
+
 video{
   width:100%;
-  height:320px;
+  height:260px;
+  background:black;
+  border-radius:14px;
   object-fit:cover;
-  background:#000;
-}
-.tag{
-  position:absolute;left:10px;top:10px;
-  padding:6px 10px;border-radius:999px;
-  background:rgba(0,0,0,.55);font-size:12px
-}
-.controls{
-  display:flex;gap:8px;flex-wrap:wrap;justify-content:center;
-  margin-top:10px;
-}
-.btn{
-  padding:10px 14px;border-radius:12px;border:0;
-  background:#1f2937;color:#e5e7eb;cursor:pointer;
-}
-.btn.primary{background:var(--accent);color:#0b1020}
-.btn.ghost{background:transparent;border:1px solid rgba(148,163,184,.18)}
-.btn.danger{background:var(--danger)}
-.status{
-  text-align:center;color:var(--muted);font-size:13px;margin:8px 0;
 }
 
-.chat{
-  display:flex;flex-direction:column;gap:8px;height:100%;
+/* ===== CONTROLS ===== */
+.controls{
+  display:flex;
+  justify-content:center;
+  gap:12px;
+  margin:18px 0;
 }
-.chat-log{
-  flex:1;
-  background:#0b1020;
-  border:1px solid rgba(148,163,184,.12);
-  border-radius:12px;
-  padding:10px;
+
+.controls button{
+  background:#020617;
+  color:white;
+  border:1px solid #1e293b;
+  padding:10px 16px;
+  border-radius:14px;
+  cursor:pointer;
+  transition:.2s;
+}
+
+.controls button:hover{
+  background:#020617;
+  box-shadow:0 0 15px rgba(56,189,248,.35);
+}
+
+.next{
+  background:#ef4444 !important;
+  border:none;
+}
+
+/* ===== CHAT ===== */
+.chat-box{
+  background:#020617;
+  border:1px solid #1e293b;
+  border-radius:18px;
+  padding:12px;
+}
+
+#chat{
+  height:140px;
   overflow:auto;
   font-size:14px;
-}
-.chat-row{
-  display:flex;gap:8px;
-}
-input{
-  flex:1;
-  background:#0b1020;color:#e5e7eb;
-  border:1px solid rgba(148,163,184,.18);
-  border-radius:12px;padding:10px;
-}
-.footer{
-  text-align:center;color:var(--muted);font-size:12px;margin-top:10px;
+  margin-bottom:10px;
 }
 
-/* Mobile */
-@media(max-width:800px){
-  .stage{grid-template-columns:1fr}
-  video{height:260px}
+.chat-input{
+  display:flex;
+  gap:10px;
+}
+
+.chat-input input{
+  flex:1;
+  padding:10px;
+  border-radius:12px;
+  border:none;
+  outline:none;
+}
+
+.chat-input button{
+  padding:10px 18px;
+  border-radius:12px;
+  border:none;
+  background:var(--neon);
+  cursor:pointer;
+}
+
+/* ===== FOOTER ===== */
+footer{
+  text-align:center;
+  font-size:12px;
+  color:#94a3b8;
+  margin-top:14px;
+}
+
+/* ===== MOBILE ===== */
+@media(max-width:768px){
+  .video-wrap{
+    grid-template-columns:1fr;
+  }
+  video{
+    height:220px;
+  }
 }
 </style>
 </head>
 
 <body>
-<div class="app">
 
-  <div class="header">
-    <div class="brand">
-      <div class="logo">RV</div>
-      <div>
-        <div>RandomVibe</div>
-        <div style="font-size:12px;color:var(--muted)">Video chat with strangers</div>
-      </div>
-    </div>
-    <div class="badges">
-      <div class="badge" id="status">Waiting for stranger…</div>
-      <div class="badge" id="typing"></div>
-    </div>
-  </div>
+<header>
+  <div class="logo">💙 RandomVibe</div>
+  <div class="status" id="status">Waiting for stranger...</div>
+</header>
 
-  <div class="stage">
-    <!-- LOCAL -->
-    <div class="card">
-      <div class="video-wrap">
-        <span class="tag">You</span>
-        <video id="local" autoplay muted playsinline></video>
-      </div>
-      <div class="controls">
-        <button class="btn ghost" id="micBtn">🎤 Mute</button>
-        <button class="btn ghost" id="camBtn">📷 Camera</button>
-        <button class="btn ghost" id="beautyBtn">✨ Beauty</button>
-      </div>
+<div class="container">
+
+  <div class="video-wrap">
+    <div class="video-card">
+      <span>You</span>
+      <video id="local" autoplay muted playsinline></video>
     </div>
 
-    <!-- REMOTE -->
-    <div class="card">
-      <div class="video-wrap">
-        <span class="tag">Stranger</span>
-        <video id="remote" autoplay playsinline></video>
-      </div>
-      <div class="controls">
-        <button class="btn danger" id="nextBtn">Next</button>
-      </div>
+    <div class="video-card">
+      <span>Stranger</span>
+      <video id="remote" autoplay playsinline></video>
     </div>
   </div>
 
-  <div class="card" style="margin-top:12px">
-    <div class="chat">
-      <div class="chat-log" id="chat"></div>
-      <div class="chat-row">
-        <input id="msg" placeholder="Type a message…" />
-        <button class="btn primary" id="sendBtn">Send</button>
-      </div>
+  <div class="controls">
+    <button id="micBtn">🎤 Mute</button>
+    <button id="camBtn">📷 Camera</button>
+    <button class="next" id="nextBtn">Next</button>
+  </div>
+
+  <div class="chat-box">
+    <div id="typing" style="font-size:12px;color:#38bdf8"></div>
+    <div id="chat"></div>
+
+    <div class="chat-input">
+      <input id="msg" placeholder="Say hi 👋"/>
+      <button id="sendBtn">Send</button>
     </div>
   </div>
 
-  <div class="footer">🔒 Anonymous • No recordings • Be respectful</div>
 </div>
+
+<footer>
+  🔒 Anonymous • No recording • Be respectful
+</footer>
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="script.js"></script>
+
 </body>
 </html>
