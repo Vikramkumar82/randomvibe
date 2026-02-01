@@ -17,24 +17,50 @@ document.addEventListener("DOMContentLoaded", () => {
   let localStream;
   let typingTimeout;
 
-  // SAFETY CHECK
-  if (!localVideo || !remoteVideo) {
-    console.error("❌ Video elements missing");
-    return;
-  }
-
   // ======================
-  // START CAMERA
+  // START CAMERA (MIRRORED STREAM)
   // ======================
   async function start() {
-    localVideo.style.transform = "scaleX(-1)";
-
     try {
-      localStream = await navigator.mediaDevices.getUserMedia({
+      const rawStream = await navigator.mediaDevices.getUserMedia({
         video: true,
         audio: true
       });
 
+      // hidden video
+      const hiddenVideo = document.createElement("video");
+      hiddenVideo.srcObject = rawStream;
+      hiddenVideo.muted = true;
+      hiddenVideo.play();
+
+      // canvas mirror
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      hiddenVideo.onloadedmetadata = () => {
+        canvas.width = hiddenVideo.videoWidth;
+        canvas.height = hiddenVideo.videoHeight;
+
+        function draw() {
+          ctx.save();
+          ctx.scale(-1, 1);
+          ctx.drawImage(
+            hiddenVideo,
+            -canvas.width,
+            0,
+            canvas.width,
+            canvas.height
+          );
+          ctx.restore();
+          requestAnimationFrame(draw);
+        }
+        draw();
+      };
+
+      const videoTrack = canvas.captureStream(30).getVideoTracks()[0];
+      const audioTrack = rawStream.getAudioTracks()[0];
+
+      localStream = new MediaStream([videoTrack, audioTrack]);
       localVideo.srcObject = localStream;
 
       pc = new RTCPeerConnection({
@@ -102,80 +128,68 @@ document.addEventListener("DOMContentLoaded", () => {
   // ======================
   // CHAT
   // ======================
-  if (sendBtn && msgInput) {
-    sendBtn.onclick = () => {
-      if (!msgInput.value.trim()) return;
-      socket.emit("message", msgInput.value);
-      chat.innerHTML += `<p><b>You:</b> ${msgInput.value}</p>`;
-      msgInput.value = "";
-    };
-  }
+  sendBtn.onclick = () => {
+    if (!msgInput.value.trim()) return;
+    socket.emit("message", msgInput.value);
+    chat.innerHTML += `<p><b>You:</b> ${msgInput.value}</p>`;
+    msgInput.value = "";
+  };
 
   socket.on("message", msg => {
     chat.innerHTML += `<p><b>Stranger:</b> ${msg}</p>`;
   });
 
   // ======================
-  // TYPING (PROPER DEBOUNCE)
+  // TYPING
   // ======================
-  if (msgInput) {
-    msgInput.oninput = () => {
-      socket.emit("typing");
-      clearTimeout(typingTimeout);
-      typingTimeout = setTimeout(() => {
-        typingText.innerText = "";
-      }, 900);
-    };
-  }
+  msgInput.oninput = () => {
+    socket.emit("typing");
+    clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(() => {
+      if (typingText) typingText.innerText = "";
+    }, 800);
+  };
 
   socket.on("typing", () => {
-    if (!typingText) return;
-    typingText.innerText = "Stranger is typing...";
+    if (typingText)
+      typingText.innerText = "Stranger is typing...";
   });
 
   // ======================
   // MIC TOGGLE
   // ======================
-  if (micBtn) {
-    micBtn.onclick = () => {
-      if (!localStream) return;
-      const track = localStream.getAudioTracks()[0];
-      if (!track) return;
-      track.enabled = !track.enabled;
-      micBtn.innerText = track.enabled ? "🎤 Mute" : "🔇 Unmute";
-    };
-  }
+  micBtn.onclick = () => {
+    const track = localStream.getAudioTracks()[0];
+    track.enabled = !track.enabled;
+    micBtn.innerText = track.enabled ? "🎤 Mute" : "🔇 Unmute";
+  };
 
   // ======================
   // CAMERA TOGGLE
   // ======================
-  if (camBtn) {
-    camBtn.onclick = () => {
-      if (!localStream) return;
-      const track = localStream.getVideoTracks()[0];
-      if (!track) return;
-      track.enabled = !track.enabled;
-      camBtn.innerText = track.enabled
-        ? "📷 Camera Off"
-        : "📸 Camera On";
-    };
-  }
+  camBtn.onclick = () => {
+    const track = localStream.getVideoTracks()[0];
+    track.enabled = !track.enabled;
+    camBtn.innerText = track.enabled
+      ? "📷 Camera Off"
+      : "📸 Camera On";
+  };
 
   // ======================
   // NEXT / LEAVE
   // ======================
-  if (nextBtn) {
-    nextBtn.onclick = () => {
-      socket.disconnect();
-      location.reload();
-    };
-  }
+  nextBtn.onclick = () => {
+  if (statusText)
+    statusText.innerText = "Status: Finding new stranger...";
+  socket.emit("leave");
+};
+
 
   socket.on("leave", () => {
     if (statusText)
       statusText.innerText = "Status: Waiting for stranger...";
     remoteVideo.srcObject = null;
-    if (chat) chat.innerHTML = "";
+    chat.innerHTML = "";
   });
 
 });
